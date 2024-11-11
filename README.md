@@ -108,6 +108,10 @@ A function that `<session-timeout>` can call to do some keep-alive stuff.
 >           `<session-timeout>` will fall back to dispatching
 >           _"sendkeepalive"_ events.
 
+The easiest way to set `keepalivecallback` is to listen for a
+[`sessiontimetoutactive`](#sessiontimetoutactive) event and set the
+function on the `event.target`.
+
 ## Events
 
 ### Listened for events
@@ -157,7 +161,6 @@ listened for you can use the event target to set
 e.g.
 
 ```javascript
-
 const doSomeKeepAliveStuff () => {
   // Make a fetch call to the server to keep the current session alive
   ...
