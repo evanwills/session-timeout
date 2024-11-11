@@ -166,16 +166,19 @@ const doSomeKeepAliveStuff () => {
   ...
 };
 
-document.addEventListener(
-  'sessiontimetoutactive',
-  (event) => {
-    if (typeof event.target !== 'undefined'
-      && typeof event.target.keepaliveCallback !== 'undefined'
-    ) {
-      event.target.keepaliveCallback = doSomeKeepAliveStuff;
-    }
-  },
-);
+const sessionTimeoutActiveHandler = (event) => {
+  if (typeof event.target !== 'undefined'
+    && typeof event.target.keepaliveCallback !== 'undefined'
+  ) {
+    event.target.keepaliveCallback = doSomeKeepAliveStuff;
+
+    // We only need to do this once, so may as well remove the event
+    // listener now we're done.
+    document.removeEventListener('sessiontimetoutactive', sessionTimeoutActiveHandler);
+  }
+};
+
+document.addEventListener('sessiontimetoutactive', sessionTimeoutActiveHandler);
 ```
 
 #### `sessionexpired`
@@ -189,8 +192,98 @@ The `sessionwillend` Custom Event is dispatched every time the
 `<session-timeout>` value on screen updates. Its `detail` value is
 the number of seconds remaining until the session timeout.
 
+(sample Vue usage)
+```html
+<template>
+  <dialog ref="sessionRefreshDialogue">
+    <h1>Session is nearly expired</h1>
+    <p>Click the button to refresh your session</p>
+    <p><button type="button" @click="refreshSession">Refresh</button></p>
+    <button type="button" @click="closeModal">X</button>
+  </dialog>
+</template>
+
+<script setup>
+import { ref, onBeforeMount, onUnmounted } from 'vue';
+
+const sessionRefreshDialogue = ref(null);
+const listening = ref(false);
+
+const sessionwillendHandler = (event) => {
+  if (typeof event.detail === 'number'
+    && event.detail > 55 && event.detail < 65
+    && sessionRefreshDialogue.value.open === false
+  ) {
+    sessionRefreshDialogue.value.showModal();
+  }
+}
+
+const refreshSession = () => {
+  window.fetch('https://example.com/keep-alive')
+    .then((response) => {
+      // In the response handler we are going to emit an event that
+      // `<session-timout>` is listeing for so it can reset the
+      // session timeout time
+
+      // This is not very efficient but we're not doing it very often
+      const tmp = document.querySelector('body');
+
+      if (tmp !== null) {
+        // tmp.dispatchEvent(new CustomEvent('resetsession'));
+
+        // The above Event is much easier to write but the below
+        // event is more reliable since the server knows best
+
+        tmp.dispatchEvent(new CustomEvent('setsessionend', response.endTime));
+      }
+    });
+}
+
+const closeModal = () => {
+  if (sessionRefreshDialogue.value.open === true) {
+    sessionRefreshDialogue.value.close();
+  }
+}
+
+onBeforeMount(() => {
+  if (listening.value === false) {
+    listening.value = true;
+    document.addEventListener('sessionwillend', sessionwillendHandler);
+  }
+});
+onUnmounted(() => {
+  if (listening.value === true) {
+    document.removeEventListener('sessionwillend', sessionwillendHandler);
+  }
+});
+</script>
+```
+
 #### `sendkeepalive`
 
 The `sessionwillend` Custom Event is dispatched every time after a
 user interaction with the page but no more frequently than the number
 of seconds specified by [`keepalive`](#keepalive).
+
+This event handler can be placed anywhere in the code but if you have
+somewhere you handle session authentication, it should probably go
+there so it has everything it needs.
+
+```JavaScript
+const keepaliveHandler = () => {
+  window.fetch('https://example.com/keep-alive')
+    .then((response) => {
+      // In the response handler we are going to emit an event that
+      // `<session-timout>` is listeing for so it can reset the
+      // session timeout time
+
+      const tmp = document.querySelector('body');
+
+      if (tmp !== null) {
+        tmp.dispatchEvent(new CustomEvent('resetsession'));
+      }
+    });
+}
+
+document.addEventListener('sendkeepalive', keepaliveHandler);
+```
