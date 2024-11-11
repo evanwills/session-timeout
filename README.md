@@ -13,6 +13,7 @@
     * [`setsessionend`](#setsessionend)
     * [Standard DOM events](#standard-dom-events)
   * [Dispatched events](#dispatched-events)
+    * [`sessiontimetoutactive`](#sessiontimetoutactive)
     * [`sessionexpired`](#sessionexpired)
     * [`sessionwillend`](#sessionwillend)
     * [`sendkeepalive`](#sendkeepalive)
@@ -145,6 +146,34 @@ was received and if it's been long enough, it will either dispatch a
 if it's callable function.
 
 ### Dispatched events
+
+#### `sessiontimetoutactive`
+
+The `sessiontimetoutactive` Custom event is dispatched when
+`<session-timeout>` component becomes active. If this event is
+listened for you can use the event target to set
+[`keepalliveCallback`](#keepalivecallback) value.
+
+e.g.
+
+```javascript
+
+const doSomeKeepAliveStuff () => {
+  // Make a fetch call to the server to keep the current session alive
+  ...
+};
+
+document.addEventListener(
+  'sessiontimetoutactive',
+  (event) => {
+    if (typeof event.target !== 'undefined'
+      && typeof event.target.keepaliveCallback !== 'undefined'
+    ) {
+      event.target.keepaliveCallback = doSomeKeepAliveStuff;
+    }
+  },
+);
+```
 
 #### `sessionexpired`
 
