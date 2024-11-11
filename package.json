@@ -1,0 +1,29 @@
+{
+  "name": "session-timeout",
+  "version": "0.0.1",
+  "description": "A custom element for helping a user know when their authenticated session will expire",
+  "main": "index.html",
+  "author": "Evan Wills",
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/evanwills/regex-multi-tool.git"
+  },
+  "bugs": {
+    "url": "https://github.com/evanwills/regex-multi-tool/issues"
+  },
+  "homepage": "https://github.com/evanwills/regex-multi-tool#readme",
+  "keywords": [
+    "web component",
+    "custom element",
+    "react"
+  ],
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "serve": "vite preview"
+  },
+  "devDependencies": {
+    "vite": "^4.1.0"
+  }
+}
