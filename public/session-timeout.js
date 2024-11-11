@@ -413,7 +413,9 @@ class SessionTimeout extends HTMLElement {
       context._valueSpan.innerText = tmp.dynamicDuration + tmp.endWord
 
       if (tmp.invalid === false && tmp.diff < 28800) { // 28800 = 8 hours
-        this.emitEvent('sessionends', tmp.diff);
+        if (tmp.diff > 0) {
+          this.emitEvent('sessionwillend', tmp.diff);
+        }
 
         context._timeout = setTimeout(
           this.updateStrings(context),
@@ -614,6 +616,8 @@ class SessionTimeout extends HTMLElement {
 
     this.setListeners();
     this._timeout = setTimeout(this.updateStrings(this), 1000);
+
+    this.emitEvent('sessiontimetoutactive');
   }
 
   disconnectedCallback () {
