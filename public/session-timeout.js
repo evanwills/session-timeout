@@ -198,9 +198,9 @@ class SessionTimeout extends HTMLElement {
     /**
      * Minimum number of seconds between emitting `keepalive` events.
      *
-     * > __Note:__ If keepalive value is less than the minimum
-     * >           keepalive value then no `keepalive` events will
-     * >           ever be fired.
+     * > __Note:__ If keepalive value is less than the `minKeepalive`
+     * >           value then no `keepalive` events will ever be
+     * >           fired.
      *
      * @property {number} keepalive
      */
@@ -413,6 +413,8 @@ class SessionTimeout extends HTMLElement {
       context._valueSpan.innerText = tmp.dynamicDuration + tmp.endWord
 
       if (tmp.invalid === false && tmp.diff < 28800) { // 28800 = 8 hours
+        this.emitEvent('sessionends', tmp.diff);
+
         context._timeout = setTimeout(
           this.updateStrings(context),
           (tmp.timeout),
@@ -504,7 +506,7 @@ class SessionTimeout extends HTMLElement {
     if ((this._lastInteraction - this._lastKeep) > this.keepalive * 1000) {
       this._lastKeep = this._lastInteraction;
       if (this._keepaliveCallback === null) {
-        this.emitEvent('keepalive', true);
+        this.emitEvent('sendkeepalive', true);
       } else {
         try {
           this.keepaliveCallback();
@@ -514,7 +516,7 @@ class SessionTimeout extends HTMLElement {
             e.message,
           );
           this._keepaliveCallback = null;
-          this.emitEvent('keepalive', true);
+          this.emitEvent('sendkeepalive', true);
         }
       }
     }
